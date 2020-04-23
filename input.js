@@ -2,35 +2,22 @@ var cv = document.getElementById("myCanvas");
 var sc = document.getElementById("score");
 var cnt = document.getElementById("content");
 var c = cv.getContext("2d");
-var step = 20;
-var score = 1;
-const height = 700;
-const width = 700;
-var size = step;
-var pos = 0;
-
+const step = 10;
+var score = 0;
+const height = cv.height;
+const width = cv.width;
+var left = true;
+var right = false;
+var up = false;
+var down = false;
+var finished = true;
 sc.innerHTML = score;
 
 function CreatObject(x, y)
 {
 	this.x = x;
 	this.y = y;
-	var left;
-	var right;
-	var up;
-	var down;
 }
-
-var head = new CreatObject(pos, pos);
-head.left = true;
-head.right = false;
-head.up = false;
-head.down = false;
-
-var snake = [];
-snake.push(head);
-
-var bait = new CreatObject(Math.floor(Math.random() * 35) * step, Math.floor(Math.random() * 35) * step);
 
 document.onkeydown = function(event)
 {
@@ -39,48 +26,48 @@ document.onkeydown = function(event)
 	{
 		case 37:
 		{
-			if(snake[0].up || snake[0].down)
+			if(up || down)
 			{
-				snake[0].left = true;
-				snake[0].right = false;
-				snake[0].up = false;
-				snake[0].down = false;
+				left = true;
+				right = false;
+				up = false;
+				down = false;
 			}
 			break;
 		}
 
 		case 38:
 		{
-			if(snake[0].left || snake[0].right)
+			if(left || right)
 			{
-				snake[0].left = false;
-				snake[0].right = false;
-				snake[0].up = true;
-				snake[0].down = false;
+				left = false;
+				right = false;
+				up = true;
+				down = false;
 			}
 			break;
 		}
 
 		case 39:
 		{
-			if(snake[0].up || snake[0].down)
+			if(up || down)
 			{
-				snake[0].left = false;
-				snake[0].right = true;
-				snake[0].up = false;
-				snake[0].down = false;
+				left = false;
+				right = true;
+				up = false;
+				down = false;
 			}
 			break;
 		}
 
 		case 40:
 		{
-			if(snake[0].left || snake[0].right)
+			if(left || right)
 			{
-				snake[0].left = false;
-				snake[0].right = false;
-				snake[0].up = false;
-				snake[0].down = true;
+				left = false;
+				right = false;
+				up = false;
+				down = true;
 			}
 			break;
 		}
@@ -88,9 +75,9 @@ document.onkeydown = function(event)
 
 }
 
-function gameOver()
+function gameOver(snake)
 {
-	for (var i = snake.length - 1; i > 0; i--)
+	for (var i = snake.length - 1; i > 2; i--)
 	{
 		if(snake[i].x == snake[0].x && snake[i].y == snake[0].y)
 		{
@@ -100,7 +87,29 @@ function gameOver()
 	return false;
 }
 
-function bait_eaten()
+function inSnake(snake, x, y)
+{
+	for (var i = snake.length - 1; i >= 0; i--)
+		if(snake[i].x == x && snake[i].y == y)
+			return true;
+	return false;
+}
+
+function bait_generate(bait)
+{
+	var x, y;
+
+	do
+	{
+		x = Math.floor(Math.random() * width / step) * step;
+		y = Math.floor(Math.random() * height / step) * step;
+	}while(inSnake(x, y) == true);
+
+	bait.x = x;
+	bait.y = y;
+}
+
+function bait_eaten(snake, bait)
 {
 	if(snake[0].x == bait.x && snake[0].y == bait.y)
 		return true;
@@ -108,98 +117,119 @@ function bait_eaten()
 		return false;
 }
 
-var _frame = 0;
-
-var id = setInterval(frame, 30);
-function frame()
+function draw(snake, bait)
 {
-	if(gameOver())
-	{
-		clearInterval(id);
-	}else{
-		if(bait_eaten())
-		{
-			++score;
-			sc.innerHTML = score;
-			var new_tail = new CreatObject(snake[snake.length - 1].x, snake[snake.length - 1].y);
-			new_tail.left = snake[snake.length - 1].left;
-			new_tail.right = snake[snake.length - 1].right;
-			new_tail.up = snake[snake.length - 1].up;
-			new_tail.down = snake[snake.length - 1].down;
-			if(snake[snake.length - 1].left)
-			{
-				new_tail.x += step;
-			}else{
-				if(snake[snake.length - 1].right)
-					new_tail.x -= step;
-				else
-					if(snake[snake.length - 1].up)
-						new_tail.y += step;
-					else
-						new_tail.y -= step;
-			}
-
-			snake.push(new_tail);
-
-			bait.x = Math.floor(Math.random() * 35) * step;
-			bait.y = Math.floor(Math.random() * 35) * step;
-		}
-
-		for (var i = snake.length - 1; i >= 0; i--)
-		{
-			if(snake[i].left)
-			{
-				snake[i].x -= step;
-				if(snake[i].x <= -size)
-					snake[i].x = width - size;
-			}else{
-				if(snake[i].right)
-				{
-					snake[i].x += step;
-					if(snake[i].x >= width)
-						snake[i].x = 0;
-				}else{
-					if(snake[i].up)
-					{
-						snake[i].y -= step;
-						if(snake[i].y <= -size)
-							snake[i].y = height - size;
-					}else{
-						snake[i].y += step;
-						if(snake[i].y >= height)
-							snake[i].y = 0;
-					}
-				}
-			}
-			
-			if (i > 0)
-			{
-				snake[i].left = snake[i-1].left;
-				snake[i].right = snake[i-1].right;
-				snake[i].up = snake[i-1].up;
-				snake[i].down = snake[i-1].down;
-			}
-		}
-
-		//console.log(snake[0].x, snake[0].y);
-
-		draw();
-
-		++_frame;
-	}
-}
-
-function draw()
-{
-	c.clearRect(0, 0, 1500, 700);
+	c.clearRect(0, 0, width, height);
 	c.beginPath()
 	c.fillStyle = "#00ff00";
-	c.fillRect(bait.x, bait.y, size, size);
+	c.fillRect(bait.x, bait.y, step, step);
 	c.stroke();
 	
 	c.beginPath();
 	c.fillStyle = "#ff0000";
 	for (var i = snake.length - 1; i >= 0; i--)
-		c.fillRect(snake[i].x, snake[i].y, size, size);
+		c.fillRect(snake[i].x + 1, snake[i].y + 1, step - 2, step - 2);
 	c.stroke();
+}
+
+function reset()
+{
+	c.clearRect(0, 0, width, height);
+	finished = true;
+	score = 0;
+	sc.innerHTML = score;
+}
+
+function begin()
+{
+	if(finished == true)
+	{
+		finished = false;
+		var pos = Math.floor(Math.random() * width / step) * step;
+		var head = new CreatObject(pos, pos);
+
+		var snake = [];
+		snake.push(head);
+
+		var bait = new CreatObject(Math.floor(Math.random() * width / step) * step, Math.floor(Math.random() * height / step) * step);
+
+		var id = setInterval(frame, 30);
+
+		function frame()
+		{
+			if(gameOver(snake))
+			{
+				clearInterval(id);
+			}else{
+				if(bait_eaten(snake, bait))
+				{
+					++score;
+					sc.innerHTML = score;
+					var new_tail = new CreatObject(snake[snake.length - 1].x, snake[snake.length - 1].y);
+
+					if(snake.length == 1)
+					{
+						if(left)
+							new_tail.x += step;
+						else
+							if(right)
+								new_tail.x -= step;
+							else
+								if(up)
+									new_tail.y += step;
+								else
+									new_tail.y -= step;
+					}else{
+						if(snake[snake.length - 2].x == snake[snake.length - 1].x + step)
+							new_tail.x += step;
+						else
+							if(snake[snake.length - 2].x == snake[snake.length - 1].x - step)
+								new_tail.x -= step;
+							else
+								if(snake[snake.length - 2].y == snake[snake.length - 1].y - step)
+									new_tail.y += step;
+								else
+									new_tail.y -= step;
+					}
+
+					snake.push(new_tail);
+
+					bait_generate(bait);
+				}
+
+				for (var i = snake.length - 1; i > 0; i--)
+				{
+					snake[i].x = snake[i-1].x;
+					snake[i].y = snake[i-1].y;
+				}
+
+				if(left)
+				{
+					snake[0].x -= step;
+					if(snake[0].x <= -step)
+						snake[0].x = width - step;
+				}else{
+					if(right)
+					{
+						snake[0].x += step;
+						if(snake[0].x >= width)
+							snake[0].x = 0;
+					}else{
+						if(up)
+						{
+							snake[0].y -= step;
+							if(snake[0].y <= -step)
+								snake[0].y = height - step;
+						}else{
+							snake[0].y += step;
+							if(snake[0].y >= height)
+								snake[0].y = 0;
+						}
+					}
+				}
+
+				draw(snake, bait);
+			}
+		}
+	}
 }
