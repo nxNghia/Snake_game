@@ -121,7 +121,7 @@ function draw(snake, bait)
 {
 	c.clearRect(0, 0, width, height);
 	c.beginPath()
-	c.fillStyle = "#00ff00";
+	c.fillStyle = "#138dff";
 	c.fillRect(bait.x, bait.y, step, step);
 	c.stroke();
 	
